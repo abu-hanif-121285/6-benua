@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jelajah Benua - IPAS Kelas 6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* TEMA FUTURISTIK: LATAR BELAKANG GELAP, AKSEN NEON (CYAN) */
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0f172a; /* Slate-950 Dark Background */
+            color: #e2e8f0; /* Default light text */
+        }
+
+        /* Kartu Konten */
+        .card { 
+            /* Border dan shadow biru neon */
+            @apply bg-slate-800 p-6 rounded-3xl shadow-2xl shadow-cyan-500/30 border border-cyan-700/50 transition duration-300; 
+        }
+        
+        /* Desain Tombol Navigasi Utama (Neon) */
+        .nav-btn {
+            @apply bg-slate-700 text-cyan-400 py-3 px-6 rounded-full font-extrabold text-sm uppercase tracking-widest 
+                   shadow-xl transition duration-200 transform 
+                   /* Border Cyan */
+                   border-2 border-cyan-400 
+                   /* Hover: Shadow glow */
+                   hover:bg-slate-600 hover:text-white hover:shadow-cyan-400/50 
+                   /* Active (Klik): Neon Hijau dengan shadow glow */
+                   active:bg-green-500 active:text-slate-900 active:border-green-400 active:shadow-green-500/70 active:scale-[0.98] 
+                   focus:outline-none focus:ring-4 focus:ring-cyan-500/50;
+        }
+
+        /* Tombol Aksi Primer */
+        .btn-primary { 
+            @apply bg-cyan-600 text-slate-900 py-2 px-4 rounded-xl font-semibold hover:bg-cyan-500 transition duration-150 shadow-md; 
+        }
+
+        /* Tombol Aksi Sekunder (Dark theme) */
+        .btn-secondary { 
+            @apply bg-slate-700 text-gray-200 py-2 px-4 rounded-xl font-semibold hover:bg-slate-600 transition duration-150 border border-slate-600; 
+        }
+        
+        .continent-map-item {
+            cursor: pointer;
+            @apply p-4 m-2 text-center text-sm font-bold text-white rounded-xl shadow-lg transition transform hover:scale-105;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Custom scrollbar for better look */
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .custom-scroll { scrollbar-width: thin; scrollbar-color: #1e293b transparent; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="app" class="max-w-4xl mx-auto">
+        <!-- Header Aplikasi -->
+        <header class="text-center mb-10">
+            <!-- Warna Header Neon Cyan -->
+            <h1 class="text-5xl font-extrabold text-cyan-400 drop-shadow-lg shadow-cyan-400/50">🌍 Jelajah Benua 🧭</h1>
+            <p class="text-gray-400 mt-2 text-lg">IPAS Kelas 6: Pelesir Keliling Dunia</p>
+        </header>
+
+        <!-- Area Navigasi Utama dengan Efek Baru -->
+        <nav id="main-nav" class="mb-8 flex flex-wrap justify-center gap-4">
+            <button onclick="navigate('home')" class="nav-btn">Peta Interaktif</button>
+            <button onclick="navigate('quiz')" class="nav-btn">Quiz Benua</button>
+            <button onclick="navigate('compare')" class="nav-btn">Perbandingan Benua</button>
+        </nav>
+
+        <!-- Area Konten Dinamis -->
+        <div id="content-area" class="card min-h-[500px] custom-scroll overflow-y-auto">
+            <!-- Konten akan dimuat di sini oleh JavaScript -->
+            <h2 class="text-2xl font-bold text-gray-400 mb-4 text-center">Memuat Konten...</h2>
+        </div>
+    </div>
+
+    <script>
+        // --- Data Konten Benua (Warna Ilustrasi Tetap) ---
+        const benuaData = {
+            // ASIA: KUNING
+            Asia: {
+                color: 'bg-yellow-500', 
+                urutan: 'Terbesar ke-1',
+                fakta: 'Benua terluas dan terpadat di dunia (sekitar 30% daratan Bumi).',
+                geografis: 'Terdapat Pegunungan Himalaya, puncak tertinggi dunia (Mt. Everest), dan gurun Gobi.',
+                budaya: 'Asal-usul peradaban kuno (China, India), memiliki Tembok Besar China.',
+                populasi: '4.7 Miliar',
+                luas: '44.6 Juta km²',
+            },
+            // AMERIKA: MERAH
+            Amerika: {
+                color: 'bg-red-600', 
+                urutan: 'Terbesar ke-2',
+                fakta: 'Terbagi menjadi Amerika Utara, Tengah, dan Selatan. Ditemukan oleh bangsa Eropa (Amerigo Vespucci).',
+                geografis: 'Terdapat Pegunungan Andes, Sungai Amazon (terpanjang), dan Gurun Atacama (terkering).',
+                budaya: 'Pusat Kebudayaan Modern (Hollywood), asal-usul Tari Samba dan Tango.',
+                populasi: '1.0 Miliar',
+                luas: '42.5 Juta km²',
+            },
+            // AFRIKA: HITAM
+            Afrika: {
+                color: 'bg-gray-900', 
+                urutan: 'Terbesar ke-3',
+                fakta: 'Benua dengan jumlah negara terbanyak (lebih dari 50 negara). Dijuluki "Benua Hitam".',
+                geografis: 'Terdapat Gurun Sahara (terbesar), Sungai Nil (terpanjang), dan Hutan Kongo.',
+                budaya: 'Situs Piramida Giza (Mesir), tempat asal usul manusia purba.',
+                populasi: '1.4 Miliar',
+                luas: '30.3 Juta km²',
+            },
+            // ANTARTIKA: ABU-ABU
+            Antartika: {
+                color: 'bg-gray-700', 
+                urutan: 'Terbesar ke-4',
+                fakta: 'Benua paling dingin dan berangin. Tidak memiliki penduduk tetap, hanya stasiun penelitian.',
+                geografis: 'Sekitar 98% wilayah tertutup es. Suhu terendah tercatat $-89.2^{\circ} \text{C}$.',
+                budaya: 'Zona bebas, diatur oleh Perjanjian Antartika.',
+                populasi: '0 (Musiman: ~5.000 peneliti)',
+                luas: '14.2 Juta km²',
+            },
+            // EROPA: BIRU
+            Eropa: {
+                color: 'bg-blue-600', 
+                urutan: 'Terbesar ke-5',
+                fakta: 'Benua yang menyatu dengan Asia (disebut Eurasia). Satu-satunya benua tanpa gurun besar.',
+                geografis: 'Terdapat Pegunungan Alpen dan Sungai Rhine. Sebagian besar negara tergabung dalam Uni Eropa.',
+                budaya: 'Pusat Revolusi Industri, Menara Eiffel (Prancis), dan Koloseum (Italia).',
+                populasi: '750 Juta',
+                luas: '10.2 Juta km²',
+            },
+            // AUSTRALIA: HIJAU
+            Australia: {
+                color: 'bg-green-500', 
+                urutan: 'Terbesar ke-6',
+                fakta: 'Benua terkecil di dunia. Dikenal sebagai negara-benua (benua yang hanya ditempati satu negara besar).',
+                geografis: 'Terdapat Gurun Gibson dan Great Barrier Reef (terumbu karang terbesar).',
+                budaya: 'Dikenal sebagai "Negeri Kangguru". Penduduk asli adalah suku Aborigin.',
+                populasi: '43 Juta',
+                luas: '7.6 Juta km²',
+            }
+        };
+
+        // --- Data Kuis (Diperbanyak menjadi 10 soal) ---
+        const quizData = [
+            {
+                type: 'pilihan_ganda',
+                question: 'Benua terbesar dan terpadat di dunia adalah?',
+                options: ['Amerika', 'Asia', 'Afrika', 'Eropa'],
+                answer: 'Asia',
+                keterangan: 'Benua Asia mencakup sekitar 30% dari total luas daratan Bumi.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Gurun Sahara dan Sungai Nil, kenampakan alam terkenal ini berada di benua?',
+                options: ['Asia', 'Amerika', 'Afrika', 'Australia'],
+                answer: 'Afrika',
+                keterangan: 'Gurun Sahara adalah gurun terbesar di dunia, dan Sungai Nil adalah sungai terpanjang di dunia.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Benua yang hampir seluruhnya tertutup es dan tidak memiliki penduduk tetap adalah?',
+                options: ['Eropa', 'Antartika', 'Amerika', 'Australia'],
+                answer: 'Antartika',
+                keterangan: 'Antartika adalah benua di Kutub Selatan yang dikhususkan untuk penelitian.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Negara-benua (benua yang hanya ditempati satu negara besar) adalah julukan untuk?',
+                options: ['Eropa', 'Amerika', 'Asia', 'Australia'],
+                answer: 'Australia',
+                keterangan: 'Benua Australia adalah benua terkecil yang wilayahnya hanya ditempati oleh Negara Australia.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Benua yang memiliki Pegunungan Alpen dan merupakan pusat Revolusi Industri adalah?',
+                options: ['Amerika', 'Eropa', 'Asia', 'Afrika'],
+                answer: 'Eropa',
+                keterangan: 'Eropa memiliki Pegunungan Alpen dan dikenal sebagai tempat lahirnya Revolusi Industri.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Sungai Amazon dan Pegunungan Andes yang terkenal berada di benua?',
+                options: ['Amerika', 'Asia', 'Afrika', 'Australia'],
+                answer: 'Amerika',
+                keterangan: 'Sungai Amazon (di Amerika Selatan) dan Pegunungan Andes (di Amerika Selatan) adalah kenampakan alam utama di Benua Amerika.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Benua yang dikenal sebagai habitat Marsupialia (hewan berkantung) seperti kangguru adalah?',
+                options: ['Afrika', 'Asia', 'Australia', 'Antartika'],
+                answer: 'Australia',
+                keterangan: 'Marsupialia adalah hewan khas yang banyak ditemukan di Benua Australia.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Benua manakah yang memiliki jumlah penduduk paling sedikit?',
+                options: ['Eropa', 'Australia', 'Antartika', 'Amerika'],
+                answer: 'Antartika',
+                keterangan: 'Antartika tidak memiliki penduduk tetap, hanya ditempati peneliti musiman.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Satu-satunya benua yang tidak memiliki gurun berukuran besar adalah?',
+                options: ['Asia', 'Eropa', 'Afrika', 'Amerika'],
+                answer: 'Eropa',
+                keterangan: 'Eropa merupakan satu-satunya benua yang tidak memiliki gurun pasir yang signifikan.',
+            },
+            {
+                type: 'pilihan_ganda',
+                question: 'Benua yang perbatasannya menyatu dengan Benua Asia (disebut Eurasia) adalah?',
+                options: ['Afrika', 'Eropa', 'Amerika', 'Australia'],
+                answer: 'Eropa',
+                keterangan: 'Secara geologis, Eropa dan Asia terletak pada lempeng benua yang sama dan sering disebut Eurasia.',
+            },
+        ];
+
+        // --- State Aplikasi ---
+        let currentState = {
+            currentView: 'home', // 'home', 'detail', 'quiz', 'compare'
+            selectedBenua: null,
+            quizScore: 0,
+            quizStep: 0,
+            quizResult: null,
+            compareBenua: { benua1: 'Asia', benua2: 'Amerika' }
+        };
+
+        const contentArea = document.getElementById('content-area');
+
+        // --- Fungsi Navigasi ---
+        function navigate(view, benua = null) {
+            currentState.currentView = view;
+            if (view === 'detail') {
+                currentState.selectedBenua = benua;
+            } else if (view === 'quiz') {
+                currentState.quizStep = 0;
+                currentState.quizScore = 0;
+                currentState.quizResult = null;
+            }
+            render();
+        }
+
+        // --- Fungsi Render View ---
+
+        // 1. Render Home (Peta Interaktif)
+        function renderHome() {
+            const benuaKeys = Object.keys(benuaData);
+            let mapHtml = benuaKeys.map(key => {
+                const data = benuaData[key];
+                return `
+                    <div class="continent-map-item ${data.color} cursor-pointer" onclick="navigate('detail', '${key}')">
+                        ${key}
+                        <span class="text-xs font-normal mt-1 block">(${data.urutan})</span>
+                    </div>
+                `;
+            }).join('');
+
+            contentArea.innerHTML = `
+                <h2 class="text-2xl font-extrabold text-center text-cyan-400 mb-6">Peta Interaktif (Simulasi)</h2>
+                <p class="text-center text-gray-400 mb-6">Sentuh/Klik nama benua di bawah untuk melihat detail karakteristiknya!</p>
+                
+                <!-- Container peta dengan latar belakang gelap -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-slate-900 rounded-2xl shadow-inner border border-slate-700">
+                    ${mapHtml}
+                </div>
+            `;
+        }
+
+        // 2. Render Detail (Galeri Benua)
+        function renderDetail() {
+            const benua = currentState.selectedBenua;
+            if (!benua) {
+                navigate('home');
+                return;
+            }
+            const data = benuaData[benua];
+
+            contentArea.innerHTML = `
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-3xl font-extrabold text-cyan-400">${benua}</h2>
+                    <button onclick="navigate('home')" class="btn-secondary flex items-center gap-1">
+                        <span class="text-xl">🏠</span> Kembali ke Peta
+                    </button>
+                </div>
+                
+                <div class="mb-6 p-4 ${data.color} text-white rounded-2xl shadow-md">
+                    <p class="text-xl font-bold">${data.urutan} di dunia.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Fakta Kunci (Dark theme) -->
+                    <div class="bg-cyan-950 p-4 rounded-xl border-l-4 border-cyan-500 shadow-sm">
+                        <h3 class="font-bold text-xl text-cyan-400 mb-2">Fakta Kunci</h3>
+                        <p class="text-gray-200">${data.fakta}</p>
+                        <ul class="mt-3 text-sm text-gray-300">
+                            <li><strong>Luas:</strong> ${data.luas}</li>
+                            <li><strong>Populasi:</strong> ${data.populasi}</li>
+                        </ul>
+                    </div>
+
+                    <!-- Geografis (Dark theme) -->
+                    <div class="bg-slate-700 p-4 rounded-xl border-l-4 border-teal-500 shadow-sm">
+                        <h3 class="font-bold text-xl text-teal-300 mb-2">Kenampakan Geografis</h3>
+                        <p class="text-gray-200">${data.geografis}</p>
+                    </div>
+
+                    <!-- Budaya (Dark theme) -->
+                    <div class="bg-slate-700 p-4 rounded-xl border-l-4 border-yellow-500 md:col-span-2 shadow-sm">
+                        <h3 class="font-bold text-xl text-yellow-300 mb-2">Keunikan Budaya & Ciri Khas</h3>
+                        <p class="text-gray-200">${data.budaya}</p>
+                        <p class="mt-2 text-sm text-gray-400 italic">Ini adalah contoh keunikan, seperti Piramida Mesir (Afrika) atau Tembok Besar (Asia).</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. Render Quiz
+        function renderQuiz() {
+            if (currentState.quizResult) {
+                renderQuizResult();
+                return;
+            }
+
+            const currentQuiz = quizData[currentState.quizStep];
+            if (!currentQuiz) {
+                // Semua soal selesai
+                currentState.quizResult = { score: currentState.quizScore, total: quizData.length };
+                renderQuizResult();
+                return;
+            }
+
+            let optionsHtml = '';
+            currentQuiz.options.forEach((option, index) => {
+                optionsHtml += `
+                    <button class="w-full text-left btn-secondary mt-3 p-3 text-lg rounded-xl hover:bg-slate-600 hover:ring-2 hover:ring-cyan-400 transition" 
+                            onclick="checkAnswer('${option}')">
+                        ${String.fromCharCode(65 + index)}. ${option}
+                    </button>
+                `;
+            });
+
+            contentArea.innerHTML = `
+                <h2 class="text-2xl font-extrabold text-center text-cyan-400 mb-6">Quiz Benua: Pilihan Ganda</h2>
+                <div class="text-sm font-semibold text-gray-400 mb-4 text-center">Soal ${currentState.quizStep + 1} dari ${quizData.length}</div>
+                
+                <!-- Kotak Pertanyaan Dark Theme -->
+                <div class="bg-slate-700 p-6 rounded-2xl border-2 border-cyan-400 shadow-md">
+                    <p class="text-xl font-bold text-gray-100">${currentQuiz.question}</p>
+                </div>
+                
+                <div id="quiz-options" class="mt-4 space-y-2">
+                    ${optionsHtml}
+                </div>
+                
+                <div id="quiz-feedback" class="mt-6 p-4 rounded-xl text-center font-bold hidden"></div>
+            `;
+        }
+
+        function checkAnswer(selectedOption) {
+            const currentQuiz = quizData[currentState.quizStep];
+            const feedbackDiv = document.getElementById('quiz-feedback');
+            const optionsDiv = document.getElementById('quiz-options');
+            
+            // Disable all buttons
+            optionsDiv.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (selectedOption === currentQuiz.answer) {
+                currentState.quizScore++;
+                // Feedback Benar (Glow Hijau)
+                feedbackDiv.className = 'mt-6 p-4 bg-green-900/50 text-green-400 rounded-xl text-center font-bold shadow-inner border border-green-700';
+                feedbackDiv.innerHTML = `🎉 Benar! Skor bertambah. Keterangan: ${currentQuiz.keterangan}`;
+            } else {
+                // Feedback Salah (Glow Merah)
+                feedbackDiv.className = 'mt-6 p-4 bg-red-900/50 text-red-400 rounded-xl text-center font-bold shadow-inner border border-red-700';
+                feedbackDiv.innerHTML = `😔 Salah. Jawaban yang benar adalah **${currentQuiz.answer}**. Keterangan: ${currentQuiz.keterangan}`;
+            }
+            feedbackDiv.style.display = 'block';
+
+            // Add Next Button
+            setTimeout(() => {
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'btn-primary w-full mt-4';
+                nextBtn.textContent = (currentState.quizStep + 1) === quizData.length ? 'Lihat Hasil Akhir >>' : 'Soal Selanjutnya >>';
+                nextBtn.onclick = () => {
+                    currentState.quizStep++;
+                    renderQuiz();
+                };
+                feedbackDiv.appendChild(nextBtn);
+            }, 1000);
+        }
+
+        function renderQuizResult() {
+            const { score, total } = currentState.quizResult;
+            const percentage = Math.round((score / total) * 100);
+
+            let message = '';
+            if (percentage === 100) {
+                message = 'Hebat! Kamu menguasai materi 6 Benua!';
+            } else if (percentage >= 70) {
+                message = 'Bagus! Sedikit lagi menuju sempurna.';
+            } else {
+                message = 'Terus semangat belajar! Coba ulangi kuisnya setelah membaca materi.';
+            }
+
+            contentArea.innerHTML = `
+                <h2 class="text-3xl font-extrabold text-center text-cyan-400 mb-6">Hasil Kuis Anda</h2>
+                <!-- Hasil Dark Theme -->
+                <div class="text-center p-8 bg-slate-700 rounded-2xl shadow-xl border border-cyan-400">
+                    <p class="text-2xl font-extrabold text-gray-200">Skor Anda:</p>
+                    <div class="text-6xl font-extrabold text-teal-400 my-3">${score}/${total}</div>
+                    <div class="text-3xl text-gray-300">(${percentage}%)</div>
+                    <p class="text-xl mt-4 font-semibold text-cyan-300">${message}</p>
+                    
+                    <button onclick="navigate('quiz')" class="btn-primary mt-8 mr-3">Ulangi Kuis</button>
+                    <button onclick="navigate('home')" class="btn-secondary mt-8">Kembali ke Peta</button>
+                </div>
+            `;
+        }
+
+
+        // --- Fungsi Helper untuk Perbandingan ---
+        function updateCompare(key, value) {
+            currentState.compareBenua[key] = value;
+            render();
+        }
+
+
+        // 4. Render Compare (Perbandingan Benua)
+        function renderCompare() {
+            const { benua1, benua2 } = currentState.compareBenua;
+            const data1 = benuaData[benua1];
+            const data2 = benuaData[benua2];
+            const benuaKeys = Object.keys(benuaData);
+
+            contentArea.innerHTML = `
+                <h2 class="text-2xl font-extrabold text-center text-cyan-400 mb-6">Perbandingan Benua</h2>
+                <p class="text-center text-gray-400 mb-6">Pilih dua benua di bawah untuk melihat perbandingan faktanya.</p>
+
+                <!-- Pemilih Benua Dark Theme -->
+                <div class="flex flex-col md:flex-row justify-center gap-4 mb-8 p-4 bg-slate-900 rounded-xl shadow-inner border border-slate-700">
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold text-gray-400 mb-1">Benua 1</label>
+                        <select id="select-benua-1" onchange="updateCompare('benua1', this.value)" class="w-full p-2 border border-cyan-500 bg-slate-800 text-white rounded-lg focus:ring-cyan-500 focus:border-cyan-500">
+                            ${benuaKeys.map(key => `<option value="${key}" ${key === benua1 ? 'selected' : ''}>${key}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold text-gray-400 mb-1">Benua 2</label>
+                        <select id="select-benua-2" onchange="updateCompare('benua2', this.value)" class="w-full p-2 border border-cyan-500 bg-slate-800 text-white rounded-lg focus:ring-cyan-500 focus:border-cyan-500">
+                            ${benuaKeys.map(key => `<option value="${key}" ${key === benua2 ? 'selected' : ''}>${key}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabel Perbandingan Dark Theme -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-xl">
+                        <thead class="bg-cyan-800 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left rounded-tl-2xl">Karakteristik</th>
+                                <!-- Kolom header benua menggunakan warna ilustrasi -->
+                                <th class="py-3 px-4 text-center ${data1.color}">${benua1}</th>
+                                <th class="py-3 px-4 text-center ${data2.color} rounded-tr-2xl">${benua2}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${generateComparisonRow('Urutan Luas', data1.urutan, data2.urutan)}
+                            ${generateComparisonRow('Luas Wilayah', data1.luas, data2.luas)}
+                            ${generateComparisonRow('Perkiraan Populasi', data1.populasi, data2.populasi)}
+                            ${generateComparisonRow('Fakta Unik', data1.fakta, data2.fakta)}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function generateComparisonRow(label, value1, value2) {
+            return `
+                <tr class="border-b border-slate-700 hover:bg-slate-700">
+                    <td class="py-4 px-4 font-semibold text-gray-100">${label}</td>
+                    <td class="py-4 px-4 text-center text-sm text-gray-200">${value1}</td>
+                    <td class="py-4 px-4 text-center text-sm text-gray-200">${value2}</td>
+                </tr>
+            `;
+        }
+
+
+        // --- Fungsi Render Utama ---
+        function render() {
+            // Scroll to top when view changes
+            contentArea.scrollTop = 0;
+
+            switch (currentState.currentView) {
+                case 'home':
+                    renderHome();
+                    break;
+                case 'detail':
+                    renderDetail();
+                    break;
+                case 'quiz':
+                    renderQuiz();
+                    break;
+                case 'compare':
+                    renderCompare();
+                    break;
+                default:
+                    renderHome();
+            }
+        }
+
+        // Inisialisasi Aplikasi
+        window.onload = () => {
+            // Set default comparison benua if they are the same
+            if (currentState.compareBenua.benua1 === currentState.compareBenua.benua2) {
+                currentState.compareBenua = { benua1: 'Asia', benua2: 'Amerika' };
+            }
+            render();
+        };
+
+        // Simulating the 'narasi audio' feature (cannot generate real audio)
+        console.log("Aplikasi Jelajah Benua siap! Fitur narasi audio disimulasikan melalui konsol log.");
+
+    </script>
+</body>
+</html>
